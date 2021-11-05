@@ -1,12 +1,11 @@
 const rawMaterialsListRoutes = require('express').Router();
 const RawMaterialsListController = require('../controllers/listOfMaterials.controllers');
-  // UsersService = require('../services/users.service')
 
   rawMaterialsListRoutes
-  .get('/', RawMaterialsListController.getLists)
-  .get('/:id', RawMaterialsListController.getList)
-  .post('/', RawMaterialsListController.createList)
-  .put('/', RawMaterialsListController.editList)
-  .delete('/', RawMaterialsListController.deleteList)
+  .get('/', RawMaterialsListController.getRows)
+  .get('/:id', RawMaterialsListController.getRow)
+  .post('/', RawMaterialsListController.createRow)
+  .put('/', RawMaterialsListController.editRow)
+  .delete('/:id', RawMaterialsListController.deleteRow)
 
 export {rawMaterialsListRoutes}

@@ -12,6 +12,9 @@ dotenv.config()
 const PORT = process.env.PORT || 3000;
 const app = express();
 
+
+
+app.use(express.json())
 app.use('/api/clients', clientsRoutes)
 app.use('/api/orders', ordesrRoutes)
 app.use('/api/price', priceRoutes)
@@ -20,10 +23,7 @@ app.use('/api/raw-materials', rawMaterialsRoutes)
 
 const server = ()=>{
   console.log(`⚡️[server]: Server is running at https://localhost:${PORT}`);
-  // pool.query('SELECT * from client;', (err: any,res:any) => {
-  //   console.log(err, res.fields)
-  //   pool.end()
-  // })
+
 }
 
 

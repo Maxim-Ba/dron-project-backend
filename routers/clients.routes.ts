@@ -1,12 +1,13 @@
 const clientsRoutes = require('express').Router();
-const ClientController = require('../controllers/client.controller');
+import ClientController  from '../controllers/client.controller';
   // UsersService = require('../services/users.service')
 
 clientsRoutes
   // .route('/')
   .get('/', ClientController.getClients)
+  .get('/:id', ClientController.getClient)
   .post('/', ClientController.createClient)
   .put('/', ClientController.editClient)
-  .delete('/', ClientController.deleteClient)
+  .delete('/:id', ClientController.deleteClient)
 
 export {clientsRoutes}

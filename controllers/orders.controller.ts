@@ -1,20 +1,48 @@
 import { Request, Response, NextFunction } from 'express';
-
+import OrderServices from '../services/orders.service'
 class OrderController {
   async getOrders(req: Request,res:Response){
+
     try {
-      console.log(2342342)
-      return res.status(200).send('hgdfhgfhg')
+      const result = await OrderServices.getOrders();
+      return res.json(result);
     } catch (error) {
       console.log(error)
       return res.status(400).json({error:error})
 
     }
   }
+
+  async getOrder(req: Request,res:Response){
+    try {
+      const id = Number.parseInt(req.params.id);
+      const result = await OrderServices.getOrder(id);
+      return res.json(result);
+    } catch (error) {
+      console.log(error)
+      return res.status(400).json({error:error})
+    }
+  }
+
+  async getOrdersByClient(req: Request,res:Response){
+    try {
+      const id = Number.parseInt(req.params.id);
+      const result = await OrderServices.getOrdersByClient(id);
+      return res.json(result);
+    } catch (error) {
+      console.log(error)
+      return res.status(400).json({error:error})
+    }
+  }
+
   async createOrder(req: Request,res:Response){
     try {
-      console.log(2342342)
-      return res.status(200).send('hgdfhgfhg')
+
+      const {date, clientId} = req.body;
+      const result = await OrderServices.createOrder(date, clientId);
+      console.log(result, '00000000000000000000')
+
+      return res.json(result);
     } catch (error) {
       console.log(error)
       return res.status(400).json({error:error})
@@ -23,18 +51,25 @@ class OrderController {
   }
   async editOrder(req: Request,res:Response){
     try {
-      console.log(2342342)
-      return res.status(200).send('hgdfhgfhg')
-    } catch (error) {
+      const {id, date} = req.body
+      const result = await OrderServices.editOrder(id, date);
+
+      console.log(result.rowCount)
+      return res.json(result.rowCount);
+    } catch (error:any) {
       console.log(error)
-      return res.status(400).json({error:error})
+      return res.status(400).json({error:error.message})
 
     }
   }
   async deleteOrder(req: Request,res:Response){
+
     try {
-      console.log(2342342)
-      return res.status(200).send('hgdfhgfhg')
+      const id = Number.parseInt(req.params.id);
+      const result = await OrderServices.deleteOrder(id);
+
+      console.log(result.rowCount)
+      return res.json(result.rowCount);
     } catch (error) {
       console.log(error)
       return res.status(400).json({error:error})

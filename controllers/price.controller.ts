@@ -26,6 +26,19 @@ class PriceController {
     }
   }
 
+  async getPricesNames(req: Request,res:Response){
+    try {
+
+      const result = await PriceService.getPriceNames();
+      return res.json(result);
+    } catch (error) {
+      console.log(error)
+      return res.status(400).json({error:error})
+
+    }
+  }
+
+  
   async getPrice(req: Request,res:Response){
     try {
       const id = Number.parseInt(req.params.id);
@@ -42,7 +55,6 @@ class PriceController {
 
       const {materialId, coast} = req.body;
       const result = await PriceService.createPrice(materialId, coast);
-      console.log(result, '00000000000000000000')
 
       return res.json(result);
     } catch (error) {

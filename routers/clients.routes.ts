@@ -1,13 +1,12 @@
 const clientsRoutes = require('express').Router();
 import ClientController  from '../controllers/client.controller';
-  // UsersService = require('../services/users.service')
+import authMiddleware from '../middleware/authMiddleware';
 
 clientsRoutes
-  // .route('/')
-  .get('/', ClientController.getClients)
-  .get('/:id', ClientController.getClient)
-  .post('/', ClientController.createClient)
-  .put('/', ClientController.editClient)
-  .delete('/:id', ClientController.deleteClient)
+  .get('/', authMiddleware,ClientController.getClients)
+  .get('/:id', authMiddleware,ClientController.getClient)
+  .post('/', authMiddleware,ClientController.createClient)
+  .put('/', authMiddleware,ClientController.editClient)
+  .delete('/:id',authMiddleware, ClientController.deleteClient)
 
 export {clientsRoutes}

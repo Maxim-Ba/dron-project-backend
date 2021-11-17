@@ -13,7 +13,7 @@ class PriceServices {
     }
   }
 
-  async getPrices(): Promise<any> {
+  async getPrices() {
     try {
 
       const {rows} = await pool.query('SELECT * FROM price ORDER BY price_id ASC')
@@ -25,7 +25,19 @@ class PriceServices {
     }
   }
 
-  async getPricesByRawMaterials(rawMaterialsId:number): Promise<any> {
+  async getPriceNames() {
+    try {
+
+      const {rows} = await pool.query('SELECT * FROM price_name')
+      return rows;
+
+    } catch (error) {
+      console.log(error);
+      return error;
+    }
+  }
+
+  async getPricesByRawMaterials(rawMaterialsId:number) {
     try {
 
       const {rows} = await pool.query('SELECT * FROM price WHERE raw_maretial_id=$1 ORDER BY price_id ASC',[rawMaterialsId])
@@ -37,7 +49,7 @@ class PriceServices {
     }
   }
 
-  async getPrice(id :number): Promise<any> {
+  async getPrice(id :number) {
     try {
 
       const {rows} = await pool.query('SELECT * FROM price WHERE id = $1 ORDER BY price_id ASC', [id])
@@ -61,7 +73,7 @@ class PriceServices {
     }
   }
 
-  async deletePrice(id :number): Promise<any> {
+  async deletePrice(id :number) {
     try {
 
       const result = await pool.query('DELETE FROM price WHERE id = $1', [id])

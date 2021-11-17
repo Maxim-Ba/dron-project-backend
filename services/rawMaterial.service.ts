@@ -16,7 +16,7 @@ class RawMaterialServices {
   async getRawMaterials() {
     try {
 
-      const {rows} = await pool.query('SELECT * FROM raw_material ORDER BY raw_material_id ASC')
+      const {rows} = await pool.query('SELECT * FROM raw_material')
       return rows;
 
     } catch (error) {

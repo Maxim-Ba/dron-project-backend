@@ -3,6 +3,7 @@ const PriceController = require('../controllers/price.controller');
 
   priceRoutes
   .get('/', PriceController.getPrices)
+  .get('/price-names', PriceController.getPricesNames)
   .get('/:id', PriceController.getPrice)
   .get('/raw-materials/:id', PriceController.getPricesByRawMaterial)
   .post('/', PriceController.createPrice)

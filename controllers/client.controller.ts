@@ -42,13 +42,13 @@ class ClientController {
   }
   async editClient(req: Request,res:Response){
     try {
+      console.log(req.body, 'edith')
+
       if (!req.body.id) {
         throw new Error("не верный ID");
       }
       const result = await ClientServices.editClient(req.body);
-
-      console.log(result.rowCount)
-      return res.json(result.rowCount);
+      return res.json(result);
     } catch (error:any) {
       console.log(error)
       return res.status(400).json({error:error.message})
@@ -61,8 +61,7 @@ class ClientController {
       const id = Number.parseInt(req.params.id);
       const result = await ClientServices.deleteClient(id);
 
-      console.log(result.rowCount)
-      return res.json(result.rowCount);
+      return res.json(result);
     } catch (error) {
       console.log(error)
       return res.status(400).json({error:error})

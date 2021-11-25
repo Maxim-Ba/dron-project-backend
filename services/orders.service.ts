@@ -1,12 +1,23 @@
 import { pool } from "../db/pool"
 
 class OrderServices {
-  async createOrder(date:Date,clientId:number) {
+  async createOrder(date:Date,clientId:number, priceNameId:number , rawMaterials:any[]) {
     try {
-      await pool.query('INSERT INTO orders (date, client_id) VALUES ($1, $2)',
-        [date, clientId])
-      return 'ok';// CATCH ERR in contriller
-    } catch (error) {
+      const result = await pool.query('INSERT INTO orders (date, client_id, id_price_name) VALUES ($1, $2, $3) RETURNING order_id',
+        [date, clientId, priceNameId])
+      console.log(result)
+      const resObj: any[] = [];
+        if (result.rows) {
+          rawMaterials.forEach(async item=>{
+            const {rows} = await pool.query('INSERT INTO List_of_materials (order_id, amount, raw_material_id) VALUES ($1, $2, $3)',
+              [result.rows[0].order_id, item.amount, item.id])
+              resObj.push(rows[0])
+          })
+          console.log(resObj, 'resObj')
+          return {message:"Заказ создан"};
+        }
+        return result;    
+      } catch (error) {
       console.log(error)
       return error
     }

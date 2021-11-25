@@ -41,8 +41,8 @@ class PriceController {
   
   async getPrice(req: Request,res:Response){
     try {
-      const id = Number.parseInt(req.params.id);
-      const result = await PriceService.getPrice(id);
+      const priceName = req.params.name;
+      const result = await PriceService.getPrice(priceName);
       return res.json(result);
     } catch (error) {
       console.log(error)
@@ -53,8 +53,22 @@ class PriceController {
   async createPrice(req: Request,res:Response){
     try {
 
-      const {materialId, coast} = req.body;
-      const result = await PriceService.createPrice(materialId, coast);
+      const {materialId, coast, priceName} = req.body;
+      const result = await PriceService.createPrice(materialId, coast, priceName);
+      return res.json(result);
+    } catch (error) {
+      console.log(error)
+      return res.status(400).json({error:error})
+
+    }
+  }
+
+  async createPriceName(req: Request,res:Response){
+    try {
+      console.log(req.body, 'req.body')
+
+      const {name} = req.body;
+      const result = await PriceService.createPriceName(name);
 
       return res.json(result);
     } catch (error) {
@@ -63,13 +77,14 @@ class PriceController {
 
     }
   }
+
   async editPrice(req: Request,res:Response){
     try {
-      const {id, coast} = req.body
-      const result = await PriceService.editPrice(id, coast);
+      console.log(req.body, 'editPrice')
 
-      console.log(result.rowCount)
-      return res.json(result.rowCount);
+      const result = await PriceService.editPrice(req.body);
+
+      return res.json(result);
     } catch (error:any) {
       console.log(error)
       return res.status(400).json({error:error.message})
@@ -80,8 +95,7 @@ class PriceController {
     try {
       const id = Number.parseInt(req.params.id);
       const result = await PriceService.deletePrice(id);
-      console.log(result.rowCount)
-      return res.json(result.rowCount);
+      return res.json(result);
     } catch (error) {
       console.log(error)
       return res.status(400).json({error:error})

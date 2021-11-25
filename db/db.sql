@@ -39,22 +39,27 @@ CREATE TABLE Price (
   id_price serial PRIMARY KEY,
   coast real,
   raw_material_id integer,
-  price_name varchar(255) UNIQUE,
-  FOREIGN KEY (raw_material_id) references Raw_material (raw_material_id),
-  FOREIGN KEY (price_name) references Price_name (price_name)
+  price_name varchar(255),
+  UNIQUE (raw_material_id, price_name),
+  FOREIGN KEY (raw_material_id) references Raw_material (raw_material_id) ON DELETE CASCADE,
+  FOREIGN KEY (price_name) references Price_name (price_name) ON DELETE CASCADE
 
 );
 
 ALTER TABLE Orders
   ADD client_id integer NOT NULL, 
-  ADD FOREIGN KEY (client_id) references Client (id);
+  ADD id_price_name integer NOT NULL, 
+  ADD FOREIGN KEY (client_id) references Client (id),
+  ADD FOREIGN KEY (id_price_name) references Price_name (id_price_name) ON DELETE CASCADE;
+
 
 CREATE TABLE List_of_materials (
-  raw_material varchar(255),
-  FOREIGN KEY (raw_material) references Raw_material (name),
+  id_list bigserial PRIMARY KEY,
+  raw_material_id integer,
+  FOREIGN KEY (raw_material_id) references Raw_material (raw_material_id) ON DELETE CASCADE,
   amount real,
   order_id integer,
-  FOREIGN KEY (order_id) references Orders (order_id)
+  FOREIGN KEY (order_id) references Orders (order_id) ON DELETE CASCADE
 );
 
 CREATE TABLE Role (

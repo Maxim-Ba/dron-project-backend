@@ -1,9 +1,9 @@
-export function generateQueryStr(payload:any, table:string) {
+export function generateQueryStr(payload:any, table:string, primaryKey:string='id') {
   let beginStr = `UPDATE ${table} SET `
-  let endStr = 'WHERE id='
+  let endStr = `WHERE ${primaryKey}=`
   for(let key in payload){
     // set VALIUES
-    if (key === 'id') {
+    if (key === primaryKey) {
       endStr = endStr.concat(payload[key]);
       continue
     }

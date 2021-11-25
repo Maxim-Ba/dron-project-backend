@@ -38,10 +38,9 @@ class OrderController {
   async createOrder(req: Request,res:Response){
     try {
 
-      const {date, clientId} = req.body;
-      const result = await OrderServices.createOrder(date, clientId);
-      console.log(result, '00000000000000000000')
-
+      const {client, price, date, rawMaterialList } = req.body;
+      console.log(req.body)
+      const result = await OrderServices.createOrder(date, client.id, price.id, rawMaterialList);
       return res.json(result);
     } catch (error) {
       console.log(error)

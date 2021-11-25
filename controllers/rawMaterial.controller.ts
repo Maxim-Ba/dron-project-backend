@@ -13,7 +13,18 @@ class RawMaterialController {
 
     }
   }
+  async getMaterialsAndUnits(req: Request,res:Response){
+    
+    try {
+      const result = await RawMaterialService.getMaterialsAndUnits();
+      return res.json(result);
+    } catch (error) {
+      console.log(error)
+      return res.status(400).json({error:error})
 
+    }
+  }
+  
   async getMaterial(req: Request,res:Response){
     try {
       const id = Number.parseInt(req.params.id);
@@ -28,10 +39,8 @@ class RawMaterialController {
   async createMaterial(req: Request,res:Response){
     try {
 
-      const {name, nameUnits} = req.body;
-      const result = await RawMaterialService.createRawMaterial(name, nameUnits);
-      console.log(result, '00000000000000000000')
-
+      const {nameMaterial, units} = req.body;
+      const result = await RawMaterialService.createRawMaterial(nameMaterial, units);
       return res.json(result);
     } catch (error) {
       console.log(error)
@@ -41,6 +50,7 @@ class RawMaterialController {
   }
   async editMaterial(req: Request,res:Response){
     try {
+      console.log(req.body)
 
       if (!req.body.id) {
         throw new Error("не верный ID");
@@ -48,14 +58,12 @@ class RawMaterialController {
       const payload = {
         raw_material_id:req.body.id,
         name:req.body.name,
-        name_units:req.body.nameUnits
+        unit_name:req.body.units
       }
-      console.log(payload)
-      console.log(req.body)
+      console.log(payload, 'payload')
 
       const result = await RawMaterialService.editRawMaterial(payload);
-      console.log(result.rowCount)
-      return res.json(result.rowCount);
+      return res.json(result);
     } catch (error) {
       console.log(error)
       return res.status(400).json({error:error})
@@ -64,10 +72,9 @@ class RawMaterialController {
   async deleteMaterial(req: Request,res:Response){
     try {
       const id = Number.parseInt(req.params.id);
+      console.log(id ,'-----id')
       const result = await RawMaterialService.deleteRawMaterial(id);
-
-      console.log(result.rowCount)
-      return res.json(result.rowCount);
+      return res.json(result);
     } catch (error) {
       console.log(error)
       return res.status(400).json({error:error})

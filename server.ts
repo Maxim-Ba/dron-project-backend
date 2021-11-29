@@ -1,6 +1,5 @@
+import path from 'path';
 import express from 'express';
-import { pool } from './db/pool';
-import { Request, Response, NextFunction } from 'express';
 import { clientsRoutes } from './routers/clients.routes';
 import { ordesrRoutes } from './routers/orders.routes';
 import { priceRoutes } from './routers/price.routes';
@@ -11,6 +10,8 @@ import cors from 'cors';
 import { userRoutes } from './routers/user.router';
 import authMiddleware from './middleware/authMiddleware';
 dotenv.config();
+
+export const rootPath = path.join(__dirname)
 
 const PORT = process.env.PORT || 3000;
 const app = express();

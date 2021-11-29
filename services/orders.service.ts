@@ -1,89 +1,265 @@
-import { pool } from "../db/pool"
+import { pool } from "../db/pool";
+import ExcelJS from "exceljs";
+import path from "path";
+import { rootPath } from "../server";
 
+type ResponseData = Array<{
+  amount: number;
+  client_id: number;
+  coast: number;
+  date: string;
+  id_list: string;
+  id_price: number;
+  id_price_name: number;
+  id_unit_name: number;
+  name: string;
+  order_id: number;
+  price: number;
+  price_name: string;
+  raw_material_id: number;
+  rawmaterial: string;
+}>;
+interface IDatacolumn {
+  name: string;
+  sum: number;
+  orders: IOrder[];
+}
+interface IMaterialList {
+  rawMaterialId: number;
+  rawMaterial: string;
+  amount: number;
+  units: number;
+  priceByOne: number;
+  price: number;
+}
+interface IOrder {
+  orderId: number | null;
+  date: string | DateConstructor;
+  materialList: IMaterialList[];
+  price: number;
+}
 class OrderServices {
-  async createOrder(date:Date,clientId:number, priceNameId:number , rawMaterials:any[]) {
+  async createOrder(
+    date: Date,
+    clientId: number,
+    priceNameId: number,
+    rawMaterials: any[]
+  ) {
     try {
-      const result = await pool.query('INSERT INTO orders (date, client_id, id_price_name) VALUES ($1, $2, $3) RETURNING order_id',
-        [date, clientId, priceNameId])
-      console.log(result)
+      const result = await pool.query(
+        "INSERT INTO orders (date, client_id, id_price_name) VALUES ($1, $2, $3) RETURNING order_id",
+        [date, clientId, priceNameId]
+      );
       const resObj: any[] = [];
-        if (result.rows) {
-          rawMaterials.forEach(async item=>{
-            const {rows} = await pool.query('INSERT INTO List_of_materials (order_id, amount, raw_material_id) VALUES ($1, $2, $3)',
-              [result.rows[0].order_id, item.amount, item.id])
-              resObj.push(rows[0])
-          })
-          console.log(resObj, 'resObj')
-          return {message:"Заказ создан"};
-        }
-        return result;    
-      } catch (error) {
-      console.log(error)
-      return error
-    }
-  }
-
-  async getOrders(): Promise<any> {
-    try {
-
-      const {rows} = await pool.query('SELECT * FROM orders ORDER BY order_id ASC')
-      return rows;
-
-    } catch (error) {
-      console.log(error);
-      return error;
-    }
-  }
-
-  async getOrdersByClient(id:number): Promise<any> {
-    try {
-
-      const {rows} = await pool.query('SELECT * FROM orders WHERE client_id = $1 ORDER BY date ASC', [id])
-      return rows;
-
-    } catch (error) {
-      console.log(error);
-      return error;
-    }
-  }
-
-  async getOrder(id :number): Promise<any> {
-    try {
-
-      const {rows} = await pool.query('SELECT * FROM orders WHERE order_id = $1', [id])
-      return rows;
-
-    } catch (error) {
-      console.log(error);
-      return error;
-    }
-  }
-
-  async editOrder(id: number, date:string) {
-    try {
-      const queryString = 'UPDATE orders SET date=$2 WHERE order_id=$1'
-      const result = await pool.query(queryString, [id, date])
+      if (result.rows) {
+        rawMaterials.forEach(async (item) => {
+          const { rows } = await pool.query(
+            "INSERT INTO List_of_materials (order_id, amount, raw_material_id) VALUES ($1, $2, $3)",
+            [result.rows[0].order_id, item.amount, item.id]
+          );
+          resObj.push(rows[0]);
+        });
+        return { message: "Заказ создан" };
+      }
       return result;
     } catch (error) {
-      console.log(error)
-      return error
+      console.log(error);
+      return error;
     }
   }
 
-  async deleteOrder(id :number): Promise<any> {
+  _parseOrdersData(ordersData: ResponseData) {
+    const clientsSet: any = new Set();
+    const clients: any = {};
+    ordersData.forEach((item) => {
+      if (clientsSet.has(item.name)) {
+        clients[item.name].push(item);
+      } else {
+        clientsSet.add(item.name);
+        clients[item.name] = new Array(item);
+      }
+    });
+    const result: any = [];
+
+    clientsSet.forEach((key: string) => {
+      let oneClient = this._parseOneClientOrdersData(clients[key]);
+      result.push(oneClient[0]);
+    });
+    console.log(result, "result");
+    return result;
+  }
+
+  async getOrders(dateStart: string, dateEnd: string) {
+    let suffix = " ORDER BY orders.date ASC";
+
+    if (dateEnd !== "null") {
+      suffix = ` AND orders.date <= '${dateEnd}' ` + suffix;
+    }
+
+    if (dateStart !== "null") {
+      suffix = ` AND orders.date >= '${dateStart}' ` + suffix;
+    }
+
+    const queryString = `SELECT orders.order_id, orders.date, orders.client_id, Client.name, orders.id_price_name, Price_name.price_name,  Unit_name.id_unit_name, Price.coast, Price.id_price, List_of_materials.id_list,List_of_materials.amount, Raw_material.raw_material_id, Raw_material.name as rawMaterial, List_of_materials.amount * Price.coast AS price FROM orders 
+    LEFT JOIN List_of_materials ON  orders.order_id = List_of_materials.order_id 
+    LEFT JOIN Raw_material ON  List_of_materials.raw_material_id = Raw_material.raw_material_id
+    LEFT JOIN Price_name ON  orders.id_price_name = Price_name.id_price_name
+    LEFT JOIN Price ON Price_name.price_name = Price.price_name AND List_of_materials.raw_material_id = Price.raw_material_id
+    LEFT JOIN Unit_name ON Raw_material.unit_name = Unit_name.unit_name 
+    LEFT JOIN Client ON orders.client_id = Client.id`;
     try {
-
-      const result = await pool.query('DELETE FROM orders WHERE order_id = $1', [id])
-      return result;
-
+      const { rows } = await pool.query(queryString + suffix);
+      return this._parseOrdersData(rows);
     } catch (error) {
       console.log(error);
       return error;
     }
   }
 
+  _parseOneClientOrdersData(ordersData: ResponseData): IDatacolumn[] | [] {
+    if (!ordersData || ordersData.length === 0) {
+      return [];
+    }
+
+    const ordersSet = new Set();
+    const orders: IOrder[] = [];
+    ordersData.forEach((item) => {
+      if (ordersSet.has(item.order_id)) {
+        let index = orders.findIndex(
+          (order) => order.orderId === item.order_id
+        );
+        orders[index].materialList.push({
+          amount: item.amount,
+          price: item.price,
+          priceByOne: item.coast,
+          units: item.id_unit_name,
+          rawMaterial: item.rawmaterial,
+          rawMaterialId: +item.id_list,
+        });
+        orders[index].price = orders[index].price + item.price;
+      } else {
+        ordersSet.add(item.order_id);
+        orders.push({
+          date: item.date.toString().slice(0, 10),
+          price: item.price,
+          orderId: item.order_id,
+          materialList: [
+            {
+              amount: item.amount,
+              price: item.price,
+              priceByOne: item.coast,
+              units: item.id_unit_name,
+              rawMaterial: item.rawmaterial,
+              rawMaterialId: +item.id_list,
+            },
+          ],
+        });
+      }
+    });
+    const dataColumn = [
+      {
+        name: ordersData[0].name,
+        sum: [...orders].reduce((sum, current) => {
+          return sum + current.price;
+        }, 0),
+        orders: orders,
+      },
+    ];
+
+    return dataColumn;
+  }
+
+  async getOrdersByClient(
+    id: number,
+    dateStart: string,
+    dateEnd: string
+  ): Promise<any> {
+    let suffix = " ORDER BY orders.date ASC";
+
+    if (dateEnd !== "null") {
+      suffix = ` AND orders.date <= '${dateEnd}' ` + suffix;
+    }
+
+    if (dateStart !== "null") {
+      suffix = ` AND orders.date >= '${dateStart}' ` + suffix;
+    }
+
+    const queryString = `SELECT orders.order_id, orders.date, orders.client_id, Client.name, orders.id_price_name, Price_name.price_name,  Unit_name.id_unit_name, Price.coast, Price.id_price, List_of_materials.id_list,List_of_materials.amount, Raw_material.raw_material_id, Raw_material.name as rawMaterial, List_of_materials.amount * Price.coast AS price FROM orders 
+    LEFT JOIN List_of_materials ON  orders.order_id = List_of_materials.order_id 
+    LEFT JOIN Raw_material ON  List_of_materials.raw_material_id = Raw_material.raw_material_id
+    LEFT JOIN Price_name ON  orders.id_price_name = Price_name.id_price_name
+    LEFT JOIN Price ON Price_name.price_name = Price.price_name AND List_of_materials.raw_material_id = Price.raw_material_id
+    LEFT JOIN Unit_name ON Raw_material.unit_name = Unit_name.unit_name 
+    LEFT JOIN Client ON orders.client_id = Client.id 
+    WHERE orders.client_id = $1`;
+    try {
+      const { rows } = await pool.query(queryString + suffix, [id]);
+      return this._parseOneClientOrdersData(rows);
+    } catch (error) {
+      console.log(error);
+      return error;
+    }
+  }
+
+  async getOrder(id: number): Promise<any> {
+    try {
+      const { rows } = await pool.query(
+        "SELECT * FROM orders WHERE order_id = $1",
+        [id]
+      );
+      return rows;
+    } catch (error) {
+      console.log(error);
+      return error;
+    }
+  }
+
+  async editOrder(id: number, date: string) {
+    try {
+      const queryString = "UPDATE orders SET date=$2 WHERE order_id=$1";
+      const result = await pool.query(queryString, [id, date]);
+      return result;
+    } catch (error) {
+      console.log(error);
+      return error;
+    }
+  }
+
+  async deleteOrder(id: number): Promise<any> {
+    try {
+      const result = await pool.query(
+        "DELETE FROM orders WHERE order_id = $1",
+        [id]
+      );
+      return result;
+    } catch (error) {
+      console.log(error);
+      return error;
+    }
+  }
+
+  async createExel(tableData: any):Promise<string> {
+    const workbook = new ExcelJS.Workbook();
+
+    const worksheet = workbook.addWorksheet("My Sheet");
+    worksheet.columns = [
+      { 
+        key: "name", 
+        header: "name", 
+        width: 20 
+      },
+      { 
+        key: "sum", 
+        header: "sum", 
+        width: 20 
+      },
+    ]
+    worksheet.addRows(tableData);
+    console.log(tableData,'tableData')
+    const data1 = await workbook.xlsx.writeFile(rootPath + "/exel" + "/export.xlsx");
+    return path.resolve(__dirname  ,"exel", "export.xlsx")
+
+  }
 }
 
-export default new OrderServices()
-
-
+export default new OrderServices();

@@ -3,10 +3,11 @@ const OrderController = require('../controllers/orders.controller');
 
   ordesrRoutes
   // .route('/')
-  .get('/', OrderController.getOrders)
+  .get('/all-orders/:dateStart/:dateEnd', OrderController.getOrders)
   .get('/:id', OrderController.getOrder)
-  .get('/client/:id', OrderController.getOrdersByClient)
+  .get('/client/:clientId/:dateStart/:dateEnd', OrderController.getOrdersByClient)
   .post('/', OrderController.createOrder)
+  .post('/createExele', OrderController.createExel)
   .put('/', OrderController.editOrder)
   .delete('/:id', OrderController.deleteOrder)
 

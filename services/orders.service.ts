@@ -85,7 +85,6 @@ class OrderServices {
       let oneClient = this._parseOneClientOrdersData(clients[key]);
       result.push(oneClient[0]);
     });
-    console.log(result, "result");
     return result;
   }
 
@@ -120,7 +119,6 @@ class OrderServices {
     if (!ordersData || ordersData.length === 0) {
       return [];
     }
-
     const ordersSet = new Set();
     const orders: IOrder[] = [];
     ordersData.forEach((item) => {
@@ -140,7 +138,7 @@ class OrderServices {
       } else {
         ordersSet.add(item.order_id);
         orders.push({
-          date: item.date.toString().slice(0, 10),
+          date: new Date(item.date).toLocaleString().slice(0, 10),
           price: item.price,
           orderId: item.order_id,
           materialList: [
@@ -165,7 +163,6 @@ class OrderServices {
         orders: orders,
       },
     ];
-
     return dataColumn;
   }
 
@@ -238,27 +235,69 @@ class OrderServices {
     }
   }
 
-  async createExel(tableData: any):Promise<string> {
+  async createExel(tableData: IDatacolumn[]): Promise<string> {
     const workbook = new ExcelJS.Workbook();
 
     const worksheet = workbook.addWorksheet("My Sheet");
     worksheet.columns = [
-      { 
-        key: "name", 
-        header: "name", 
-        width: 20 
-      },
-      { 
-        key: "sum", 
-        header: "sum", 
-        width: 20 
-      },
-    ]
-    worksheet.addRows(tableData);
-    console.log(tableData,'tableData')
-    const data1 = await workbook.xlsx.writeFile(rootPath + "/exel" + "/export.xlsx");
-    return path.resolve(__dirname  ,"exel", "export.xlsx")
+      { width: 12 },
+      { width: 20 },
+      { width: 10 },
+      { width: 20 },
+      { width: 20 },
+      { width: 10 },
+      { width: 20 },
+    ];
+    tableData.forEach((client) => {
+      worksheet.addRow(["Клиент:", client.name, , , client.sum + "руб."]);
+      let clientRow = worksheet.lastRow;
+      let firstCell = clientRow && clientRow.getCell(2).address;
+      let thirdCell = clientRow && clientRow.getCell(4).address;
+      worksheet.mergeCells(`${firstCell}:${thirdCell}`);
+      clientRow &&
+        clientRow.eachCell((cell) => {
+          cell.font = { size: 12, bold: true };
+          cell.style.border = {
+            top: { style: "thin" },
+            left: { style: "thin" },
+            bottom: { style: "thin" },
+            right: { style: "thin" },
+          };
+        });
 
+      client.orders.forEach((order) => {
+        worksheet.addRow([
+          "Дата заказа:",
+          order.date,
+          ,
+          ,
+          order.price + "руб.",
+        ]);
+        let orderRow = worksheet.lastRow;
+
+        let firstCellOrder = orderRow && orderRow.getCell(2).address;
+        let thirdCellOrder = orderRow && orderRow.getCell(4).address;
+        worksheet.mergeCells(`${firstCellOrder}:${thirdCellOrder}`);
+        orderRow &&
+          orderRow.eachCell((cell) => {
+            cell.font = { size: 12, bold: true };
+          });
+        order.materialList.forEach((rawMaterial) => {
+          worksheet.addRow([
+            "",
+            rawMaterial.rawMaterial,
+            rawMaterial.amount,
+            rawMaterial.priceByOne + "руб.",
+            rawMaterial.price + "руб.",
+          ]);
+        });
+      });
+    });
+
+    const data1 = await workbook.xlsx.writeFile(
+      rootPath + "/exel" + "/export.xlsx"
+    );
+    return path.resolve(__dirname, "exel", "export.xlsx");
   }
 }
 

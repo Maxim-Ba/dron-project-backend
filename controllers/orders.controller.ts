@@ -1,4 +1,4 @@
-import { Request, Response, NextFunction } from 'express';
+import { Request, Response } from 'express';
 import OrderServices from '../services/orders.service'
 import { rootPath } from '../server';
 class OrderController {

@@ -1,3 +1,9 @@
+-- CREATE ROLE user_dron;
+-- ALTER ROLE user_dron WITH LOGIN PASSWORD 'password_DRON' NOSUPERUSER NOCREATEDB NOCREATEROLE;
+-- CREATE DATABASE dron_database OWNER user_dron;
+-- REVOKE ALL ON DATABASE dron_database FROM PUBLIC;
+-- GRANT CONNECT ON DATABASE dron_database TO user_dron;
+-- GRANT ALL ON DATABASE dron_database TO user_dron;
 CREATE DATABASE dron_database;
 \c dron_database
 

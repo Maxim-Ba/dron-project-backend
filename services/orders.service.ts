@@ -92,13 +92,19 @@ class OrderServices {
     let suffix = " ORDER BY orders.date ASC";
 
     if (dateEnd !== "null") {
-      suffix = ` AND orders.date <= '${dateEnd}' ` + suffix;
+      suffix = ` orders.date <= '${dateEnd}' ` + suffix;
     }
 
     if (dateStart !== "null") {
-      suffix = ` AND orders.date >= '${dateStart}' ` + suffix;
-    }
+      if (dateEnd !== "null") {
+        suffix = ` AND ` + suffix ;
+      }
+      suffix = ` orders.date >= '${dateStart}' ` + suffix;
 
+    }
+    if ((dateStart !== "null") || (dateEnd !== "null")) {
+      suffix = ` WHERE ` + suffix;
+    }
     const queryString = `SELECT orders.order_id, orders.date, orders.client_id, Client.name, orders.id_price_name, Price_name.price_name,  Unit_name.id_unit_name, Price.coast, Price.id_price, List_of_materials.id_list,List_of_materials.amount, Raw_material.raw_material_id, Raw_material.name as rawMaterial, List_of_materials.amount * Price.coast AS price FROM orders 
     LEFT JOIN List_of_materials ON  orders.order_id = List_of_materials.order_id 
     LEFT JOIN Raw_material ON  List_of_materials.raw_material_id = Raw_material.raw_material_id
@@ -106,6 +112,7 @@ class OrderServices {
     LEFT JOIN Price ON Price_name.price_name = Price.price_name AND List_of_materials.raw_material_id = Price.raw_material_id
     LEFT JOIN Unit_name ON Raw_material.unit_name = Unit_name.unit_name 
     LEFT JOIN Client ON orders.client_id = Client.id`;
+    console.log(queryString + suffix)
     try {
       const { rows } = await pool.query(queryString + suffix);
       return this._parseOrdersData(rows);

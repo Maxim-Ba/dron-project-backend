@@ -3,7 +3,9 @@
 -- alter TABLE client 
 -- ALTER column phone TYPE  bigint;
 
-
+-- UPDATE Users 
+-- 	SET role = 'admin'
+--   WHERE user_id = 1; 
 
 -- ALTER TABLE Price
 --   ALTER COLUMN raw_material_id 

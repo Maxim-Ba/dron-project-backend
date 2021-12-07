@@ -2,6 +2,7 @@ import { pool } from "../db/pool";
 import ExcelJS from "exceljs";
 import path from "path";
 import { rootPath } from "../server";
+import fs from 'fs';
 
 type ResponseData = Array<{
   amount: number;
@@ -300,7 +301,11 @@ class OrderServices {
         });
       });
     });
+    const dir = './exel';
 
+    if (!fs.existsSync(dir)){
+      fs.mkdirSync(dir);
+  }
     const data1 = await workbook.xlsx.writeFile(
       rootPath + "/exel" + "/export.xlsx"
     );

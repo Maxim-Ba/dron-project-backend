@@ -1,11 +1,14 @@
+-- UPDATE Users 
+-- 	SET role = 'admin'
+--   WHERE user_id = 1; 
+
+
 -- DROP TABLE client,list_of_materials, orders, price_name, raw_material, role, unit_name, users CASCADE;
 
 -- alter TABLE client 
 -- ALTER column phone TYPE  bigint;
 
--- UPDATE Users 
--- 	SET role = 'admin'
---   WHERE user_id = 1; 
+
 
 -- ALTER TABLE Price
 --   ALTER COLUMN raw_material_id 

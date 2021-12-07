@@ -7,14 +7,23 @@ import { rawMaterialsRoutes } from './routers/rawMaterials.routes';
 import { rawMaterialsListRoutes } from './routers/listOfMaterials';
 import dotenv from 'dotenv';
 import cors from 'cors';
+import fs from 'fs';
+
 import { userRoutes } from './routers/user.router';
 import authMiddleware from './middleware/authMiddleware';
 dotenv.config();
 
 export const rootPath = path.join(__dirname)
 
+const dir = './exel';
+
+if (!fs.existsSync(dir)){
+    fs.mkdirSync(dir);
+}
+
 const PORT = process.env.PORT || 3000;
 const app = express();
+
 
 
 app.use(cors())

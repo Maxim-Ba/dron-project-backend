@@ -304,6 +304,9 @@ class OrderServices {
     const data1 = await workbook.xlsx.writeFile(
       rootPath + "/exel" + "/export.xlsx"
     );
+    if (data1 !== null) {
+      return path.resolve(__dirname, "exel", "export.xlsx");
+    }
     return path.resolve(__dirname, "exel", "export.xlsx");
   }
 }

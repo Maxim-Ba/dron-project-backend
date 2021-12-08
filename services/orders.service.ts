@@ -301,7 +301,7 @@ class OrderServices {
         });
       });
     });
-    const dir = './exel';
+    const dir = rootPath + '/exel';
 
     if (!fs.existsSync(dir)){
       fs.mkdirSync(dir);

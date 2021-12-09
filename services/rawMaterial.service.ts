@@ -43,8 +43,7 @@ class RawMaterialServices {
   async getMaterialsAndUnits() {
     try {
 
-      const {rows:rawMaterials} = await pool.query('SELECT * FROM Raw_material ORDER BY name ASC')
-
+      const {rows:rawMaterials} = await pool.query('SELECT * FROM Raw_material LEFT JOIN Unit_name ON Unit_name.unit_name = Raw_material.unit_name ORDER BY name ASC')
       const {rows:units} = await pool.query('SELECT * FROM Unit_name')
 
       return {rawMaterials, units};

@@ -1,6 +1,9 @@
 import { Request, Response } from 'express';
-import OrderServices from '../services/orders.service'
+import OrderServices, { IEditOrderAPI } from '../services/orders.service'
 import { rootPath } from '../server';
+
+
+
 class OrderController {
   async getOrders(req: Request,res:Response){
 
@@ -40,7 +43,6 @@ class OrderController {
     try {
 
       const {client, price, date, rawMaterialList } = req.body;
-      console.log(req.body)
       const result = await OrderServices.createOrder(date, client.id, price.id, rawMaterialList);
       return res.json(result);
     } catch (error) {
@@ -51,11 +53,11 @@ class OrderController {
   }
   async editOrder(req: Request,res:Response){
     try {
-      const {id, date} = req.body
-      const result = await OrderServices.editOrder(id, date);
+      const {editedPriceItems, selectedOrder, newPriceItems, selectToDeletePriceItem} = req.body as IEditOrderAPI
+      const result = await OrderServices.editOrder({editedPriceItems, selectedOrder, newPriceItems, selectToDeletePriceItem});
 
-      console.log(result.rowCount)
-      return res.json(result.rowCount);
+      console.log(result)
+      return res.json(result);
     } catch (error:any) {
       console.log(error)
       return res.status(400).json({error:error.message})

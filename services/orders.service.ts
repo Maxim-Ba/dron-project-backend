@@ -4,6 +4,26 @@ import path from "path";
 import { rootPath } from "../server";
 import fs from 'fs';
 
+export interface IOrder {
+  orderId:number | null,
+  date:string | DateConstructor,
+  materialList:IMaterialList[],
+  price:number
+}
+export interface IOrderForChange extends IOrder{
+  changedPrice:any[] | number[]
+}
+export interface NewPriceItem {
+  amount:number
+  rawMaterialId:number
+  name:string
+} 
+export interface IEditOrderAPI {
+  selectedOrder:IOrderForChange | null
+  selectToDeletePriceItem:number[]
+  newPriceItems:NewPriceItem[]
+  editedPriceItems:number[]
+}
 type ResponseData = Array<{
   amount: number;
   client_id: number;
@@ -25,7 +45,7 @@ interface IDatacolumn {
   sum: number;
   orders: IOrder[];
 }
-interface IMaterialList {
+export interface IMaterialList {
   rawMaterialId: number;
   rawMaterial: string;
   amount: number;
@@ -33,12 +53,7 @@ interface IMaterialList {
   priceByOne: number;
   price: number;
 }
-interface IOrder {
-  orderId: number | null;
-  date: string | DateConstructor;
-  materialList: IMaterialList[];
-  price: number;
-}
+
 class OrderServices {
   async createOrder(
     date: Date,
@@ -113,7 +128,6 @@ class OrderServices {
     LEFT JOIN Price ON Price_name.price_name = Price.price_name AND List_of_materials.raw_material_id = Price.raw_material_id
     LEFT JOIN Unit_name ON Raw_material.unit_name = Unit_name.unit_name 
     LEFT JOIN Client ON orders.client_id = Client.id`;
-    console.log(queryString + suffix)
     try {
       const { rows } = await pool.query(queryString + suffix);
       return this._parseOrdersData(rows);
@@ -219,13 +233,53 @@ class OrderServices {
     }
   }
 
-  async editOrder(id: number, date: string) {
+  private _checkEditedPriceItems = (
+    editedPriceItems : number[], 
+    selectToDeletePriceItem : number[]
+    ) => {
+      if (!selectToDeletePriceItem.length) {
+        return editedPriceItems
+      }
+      let newEditItems: number[]=[];
+      selectToDeletePriceItem.forEach(deleteItem=>{
+        newEditItems = editedPriceItems.filter(editItem=>{
+          return editItem !== deleteItem
+        })
+      })
+      return newEditItems;
+  };
+  async editOrder({editedPriceItems, selectedOrder, newPriceItems, selectToDeletePriceItem}:IEditOrderAPI) {
     try {
-      const queryString = "UPDATE orders SET date=$2 WHERE order_id=$1";
-      const result = await pool.query(queryString, [id, date]);
+      editedPriceItems=this._checkEditedPriceItems(editedPriceItems, selectToDeletePriceItem);
+      let result: any[] = [];
+      if (!!newPriceItems.length) {
+        const queryString = "INSERT INTO List_of_materials (raw_material_id, amount, order_id) VALUES ($1,$2,$3)";
+        newPriceItems.forEach(async (item)=> {
+          const res = await pool.query(queryString, [item.rawMaterialId, item.amount,selectedOrder?.orderId])
+          result.push(res)
+        });
+      }
+      if (!!selectToDeletePriceItem.length) {
+        const queryString = "DELETE FROM List_of_materials WHERE id_list = $1";
+        selectToDeletePriceItem.forEach(async (item)=> {
+          const res = await pool.query(queryString, [item])
+          result.push(res)
+        })
+        
+      }
+      if (!!editedPriceItems.length) {
+        const queryString = "UPDATE List_of_materials SET amount = $1 WHERE id_list = $2";
+        editedPriceItems.forEach(async (item,index)=> {
+          const findIndex = selectedOrder?.materialList.findIndex(fItem => fItem.rawMaterialId ===item)
+          if (findIndex !== -1 && findIndex !== undefined) {
+            const res = await pool.query(queryString, [selectedOrder?.materialList[findIndex].amount, selectedOrder?.materialList[findIndex].rawMaterialId])
+            result.push(res)
+          }
+        })
+      }
       return result;
     } catch (error) {
-      console.log(error);
+      console.log(error, 'err');
       return error;
     }
   }
@@ -245,7 +299,6 @@ class OrderServices {
 
   async createExel(tableData: IDatacolumn[]): Promise<string> {
     const workbook = new ExcelJS.Workbook();
-
     const worksheet = workbook.addWorksheet("My Sheet");
     worksheet.columns = [
       { width: 12 },
@@ -282,7 +335,6 @@ class OrderServices {
           order.price + "руб.",
         ]);
         let orderRow = worksheet.lastRow;
-
         let firstCellOrder = orderRow && orderRow.getCell(2).address;
         let thirdCellOrder = orderRow && orderRow.getCell(4).address;
         worksheet.mergeCells(`${firstCellOrder}:${thirdCellOrder}`);

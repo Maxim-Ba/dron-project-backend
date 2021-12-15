@@ -65,8 +65,6 @@ class PriceController {
 
   async createPriceName(req: Request,res:Response){
     try {
-      console.log(req.body, 'req.body')
-
       const {name} = req.body;
       const result = await PriceService.createPriceName(name);
 
@@ -80,8 +78,6 @@ class PriceController {
 
   async editPrice(req: Request,res:Response){
     try {
-      console.log(req.body, 'editPrice')
-
       const result = await PriceService.editPrice(req.body);
 
       return res.json(result);

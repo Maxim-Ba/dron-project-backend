@@ -11,7 +11,6 @@ export function generateQueryStr(payload:any, table:string, primaryKey:string='i
     beginStr = beginStr.concat(key , '=' , '\'',  payload[key],'\'', ', ' );
   }
 
-  console.log(beginStr.slice(0, -2),endStr);
   beginStr = beginStr.slice(0, -2).concat(endStr);
 
   return beginStr;

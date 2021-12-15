@@ -50,7 +50,6 @@ class RawMaterialController {
   }
   async editMaterial(req: Request,res:Response){
     try {
-      console.log(req.body)
 
       if (!req.body.id) {
         throw new Error("не верный ID");
@@ -60,7 +59,6 @@ class RawMaterialController {
         name:req.body.name,
         unit_name:req.body.units
       }
-      console.log(payload, 'payload')
 
       const result = await RawMaterialService.editRawMaterial(payload);
       return res.json(result);
@@ -72,7 +70,6 @@ class RawMaterialController {
   async deleteMaterial(req: Request,res:Response){
     try {
       const id = Number.parseInt(req.params.id);
-      console.log(id ,'-----id')
       const result = await RawMaterialService.deleteRawMaterial(id);
       return res.json(result);
     } catch (error) {

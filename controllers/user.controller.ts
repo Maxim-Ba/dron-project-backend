@@ -11,16 +11,12 @@ class UserController {
         return res.status(400).json({ message: "Uncorrect reqest", errors });
       }
       const { email, password } = req.body;
-      console.log(email, password);
-
       const result = await userService.createUser(email, password);
       if (result.error) {
         return res.json({
           error: result.error,
         });
       }
-      console.log(result);
-
       return res.json({
         message: "User was created",
         result: result.rowCount,

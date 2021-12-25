@@ -10,6 +10,7 @@ import cors from 'cors';
 
 import { userRoutes } from './routers/user.router';
 import authMiddleware from './middleware/authMiddleware';
+import { graphRoutes } from './routers/graphs.routes';
 dotenv.config();
 
 export const rootPath = path.join(__dirname)
@@ -30,6 +31,7 @@ app.use('/api/orders', authMiddleware, ordesrRoutes)
 app.use('/api/price', authMiddleware, priceRoutes)
 app.use('/api/raw-materials-list', authMiddleware, rawMaterialsListRoutes)
 app.use('/api/raw-materials', authMiddleware, rawMaterialsRoutes)
+app.use('/api/graph', authMiddleware, graphRoutes)
 
 const server = ()=>{
   console.log(`⚡️[server]: Server is running at https://localhost:${PORT}`);

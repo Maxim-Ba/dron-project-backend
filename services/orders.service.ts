@@ -40,7 +40,7 @@ type ResponseData = Array<{
   raw_material_id: number;
   rawmaterial: string;
 }>;
-interface IDatacolumn {
+export interface IDatacolumn {
   name: string;
   sum: number;
   orders: IOrder[];
@@ -192,7 +192,7 @@ class OrderServices {
     id: number,
     dateStart: string,
     dateEnd: string
-  ): Promise<any> {
+  ): Promise<IDatacolumn[] | [] | any> {
     let suffix = " ORDER BY orders.date ASC";
 
     if (dateEnd !== "null") {
